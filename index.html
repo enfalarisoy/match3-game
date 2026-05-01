@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Color Slide Match 3</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <section class="hud">
+      <div>
+        <p class="label">Score</p>
+        <h1 id="score">0</h1>
+      </div>
+      <div>
+        <p class="label">Obstacles</p>
+        <h2 id="obstacles">10</h2>
+      </div>
+      <div id="moves-panel" class="moves-panel">
+        <p class="label">Moves Left</p>
+        <h2 id="moves">20</h2>
+      </div>
+      <button id="restart" type="button">Restart</button>
+    </section>
+
+    <section class="game-panel">
+      <div class="instructions">
+        Slide a tile by swiping it one space. Clean all cracked cells before the move limit runs out, and earn bonus moves for big clears.
+      </div>
+      <div id="status" class="status">Make your first move.</div>
+      <div class="board-wrap">
+        <div id="board" class="board" aria-label="Match 3 board"></div>
+        <div id="celebration" class="celebration" aria-live="polite">
+          <div class="celebration-burst">
+            <span class="burst-ring burst-ring-a"></span>
+            <span class="burst-ring burst-ring-b"></span>
+            <span class="burst-star burst-star-a"></span>
+            <span class="burst-star burst-star-b"></span>
+            <span class="burst-star burst-star-c"></span>
+            <span class="burst-star burst-star-d"></span>
+            <span class="burst-star burst-star-e"></span>
+            <span class="burst-star burst-star-f"></span>
+          </div>
+          <div id="celebration-text" class="celebration-text"></div>
+        </div>
+        <div id="flying-bonus" class="flying-bonus" aria-hidden="true"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
