@@ -7,47 +7,182 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main class="app">
-    <section class="hud">
-      <div>
-        <p class="label">Score</p>
-        <h1 id="score">0</h1>
+  <div class="app-shell">
+    <section id="main-menu" class="main-menu" aria-labelledby="menu-title">
+      <div class="menu-card">
+        <div id="menu-home" class="menu-view active" aria-hidden="false">
+          <p class="menu-kicker">Welcome</p>
+          <h1 id="menu-title">Color Slide Match 3</h1>
+          <p class="menu-copy">
+            Slide tiles one space, create matches, and clear every cracked cell before you run out of moves.
+          </p>
+          <div class="menu-actions">
+            <button id="start-game" class="menu-button" type="button">Start Game</button>
+            <button id="open-how-to-play" class="menu-button menu-button-secondary" type="button">How to Play</button>
+            <button id="open-credits" class="menu-button menu-button-secondary" type="button">Credits</button>
+          </div>
+        </div>
+
+        <div id="menu-how-to-play" class="menu-view" aria-hidden="true">
+          <p class="menu-kicker">How To Play</p>
+          <h1>Learn The Rules</h1>
+          <div class="howto-layout">
+            <section class="howto-section">
+              <h2>Goal</h2>
+              <p>Clear all 12 cracked obstacle cells before your 24 moves run out.</p>
+            </section>
+
+            <section class="howto-section">
+              <h2>Basic Tiles</h2>
+              <div class="howto-tile-row" aria-label="Colored tile examples">
+                <div class="tile howto-tile color-0" aria-hidden="true"></div>
+                <div class="tile howto-tile color-1" aria-hidden="true"></div>
+                <div class="tile howto-tile color-2" aria-hidden="true"></div>
+                <div class="tile howto-tile color-3" aria-hidden="true"></div>
+                <div class="tile howto-tile color-4" aria-hidden="true"></div>
+                <div class="tile howto-tile color-5" aria-hidden="true"></div>
+              </div>
+              <p>Match 3 or more tiles of the same color in a row or column to clear them.</p>
+            </section>
+
+            <section class="howto-section">
+              <h2>Obstacle Tiles</h2>
+              <div class="howto-example">
+                <div class="tile howto-tile color-1 obstacle" aria-hidden="true"></div>
+                <p>Cracked striped tiles are obstacles. They disappear only when that tile is part of a clear.</p>
+              </div>
+            </section>
+
+            <section class="howto-section">
+              <h2>How A Move Works</h2>
+              <p>Swipe one tile exactly one space up, down, left, or right. Diagonal moves are not allowed.</p>
+              <p>If the swap does not create a match, it snaps back and does not spend a move.</p>
+            </section>
+
+            <section class="howto-section">
+              <h2>Extra Clear Patterns</h2>
+              <div class="howto-storyboard">
+                <article class="howto-story-card">
+                  <div class="howto-story-head">
+                    <h3>Connected group clear</h3>
+                    <p>Watch the center blue tile move up one space to create a 3-match. After that match is formed, the blue tiles touching it by shared edges disappear too.</p>
+                  </div>
+                  <div class="howto-connection-demo" aria-label="Animated connected group clear example">
+                    <div class="howto-demo-board">
+                      <div class="howto-demo-cell"><div class="tile howto-mini-tile color-0" aria-hidden="true"></div></div>
+                      <div class="howto-demo-cell"><div class="tile howto-mini-tile color-1 howto-match-tile" aria-hidden="true"></div></div>
+                      <div class="howto-demo-cell"><div class="tile howto-mini-tile color-0 howto-target-tile" aria-hidden="true"></div></div>
+                      <div class="howto-demo-cell"><div class="tile howto-mini-tile color-1 howto-match-tile" aria-hidden="true"></div></div>
+
+                      <div class="howto-demo-cell"><div class="tile howto-mini-tile color-2" aria-hidden="true"></div></div>
+                      <div class="howto-demo-cell"><div class="tile howto-mini-tile color-1 howto-connected-tile" aria-hidden="true"></div></div>
+                      <div class="howto-demo-cell">
+                        <div class="tile howto-mini-tile color-0 howto-swapped-tile" aria-hidden="true"></div>
+                        <div class="tile howto-mini-tile color-1 howto-source-tile" aria-hidden="true"></div>
+                      </div>
+                      <div class="howto-demo-cell"><div class="tile howto-mini-tile color-1 howto-connected-tile" aria-hidden="true"></div></div>
+
+                      <div class="howto-demo-cell"><div class="tile howto-mini-tile color-3" aria-hidden="true"></div></div>
+                      <div class="howto-demo-cell"><div class="tile howto-mini-tile color-1 howto-connected-tile" aria-hidden="true"></div></div>
+                      <div class="howto-demo-cell"><div class="tile howto-mini-tile color-5" aria-hidden="true"></div></div>
+                      <div class="howto-demo-cell"><div class="tile howto-mini-tile color-4" aria-hidden="true"></div></div>
+                    </div>
+                    <div class="tile howto-mini-tile color-1 howto-moving-tile" aria-hidden="true"></div>
+                  </div>
+                  <p class="howto-detail-copy">The top row is the direct match. The blue tiles below remain connected through shared sides, so they disappear in the same chain reaction.</p>
+                </article>
+              </div>
+            </section>
+
+            <section class="howto-section">
+              <h2>Bonus Moves</h2>
+              <div class="howto-bonus-list">
+                <p><strong>Clear 4 to 8 tiles in one move:</strong> +1 extra move</p>
+                <p><strong>Clear 9 or more tiles in one move:</strong> +2 extra moves</p>
+              </div>
+              <p>Bonus tiles count across the whole chain reaction from that move, not just the first pop.</p>
+            </section>
+
+            <section class="howto-section">
+              <h2>Score</h2>
+              <p>Every cleared tile is worth 10 points.</p>
+            </section>
+          </div>
+          <div class="menu-actions">
+            <button id="how-to-play-back" class="menu-button menu-button-secondary" type="button">Back</button>
+          </div>
+        </div>
+
+        <div id="menu-credits" class="menu-view" aria-hidden="true">
+          <p class="menu-kicker">Credits</p>
+          <h1>About This Game</h1>
+          <div class="menu-credit-list">
+            <p><strong>Developed by:</strong> Enfal Arisoy</p>
+          </div>
+          <div class="menu-actions">
+            <button id="credits-back" class="menu-button menu-button-secondary" type="button">Back</button>
+          </div>
+        </div>
       </div>
-      <div>
-        <p class="label">Obstacles</p>
-        <h2 id="obstacles">10</h2>
-      </div>
-      <div id="moves-panel" class="moves-panel">
-        <p class="label">Moves Left</p>
-        <h2 id="moves">20</h2>
-      </div>
-      <button id="restart" type="button">Restart</button>
     </section>
 
-    <section class="game-panel">
-      <div class="instructions">
-        Slide a tile by swiping it one space. Clean all cracked cells before the move limit runs out, and earn bonus moves for big clears.
-      </div>
-      <div id="status" class="status">Make your first move.</div>
-      <div class="board-wrap">
-        <div id="board" class="board" aria-label="Match 3 board"></div>
-        <div id="celebration" class="celebration" aria-live="polite">
-          <div class="celebration-burst">
-            <span class="burst-ring burst-ring-a"></span>
-            <span class="burst-ring burst-ring-b"></span>
-            <span class="burst-star burst-star-a"></span>
-            <span class="burst-star burst-star-b"></span>
-            <span class="burst-star burst-star-c"></span>
-            <span class="burst-star burst-star-d"></span>
-            <span class="burst-star burst-star-e"></span>
-            <span class="burst-star burst-star-f"></span>
-          </div>
-          <div id="celebration-text" class="celebration-text"></div>
+    <main id="app" class="app" aria-hidden="true">
+      <section class="hud">
+        <div>
+          <p class="label">Score</p>
+          <h1 id="score">0</h1>
         </div>
-        <div id="flying-bonus" class="flying-bonus" aria-hidden="true"></div>
+        <div>
+          <p class="label">Obstacles</p>
+          <h2 id="obstacles">12</h2>
+        </div>
+        <div id="moves-panel" class="moves-panel">
+          <p class="label">Moves Left</p>
+          <h2 id="moves">24</h2>
+        </div>
+        <div class="hud-actions">
+          <button id="hint-button" class="hud-button hud-button-secondary" type="button">Hint</button>
+          <button id="mute-button" class="hud-button hud-button-secondary" type="button" aria-pressed="false">Sound: On</button>
+          <button id="menu-button" class="hud-button hud-button-secondary" type="button">Menu</button>
+          <button id="restart" class="hud-button" type="button">Restart</button>
+        </div>
+      </section>
+
+      <section class="game-panel">
+        <div class="instructions">
+          Slide a tile by swiping it one space. Clean all cracked cells before the move limit runs out, and earn bonus moves for big clears.
+        </div>
+        <div id="status" class="status">Press Play to start.</div>
+        <div class="board-wrap">
+          <div id="board" class="board" aria-label="Match 3 board"></div>
+          <div id="celebration" class="celebration" aria-live="polite">
+            <div class="celebration-burst">
+              <span class="burst-ring burst-ring-a"></span>
+              <span class="burst-ring burst-ring-b"></span>
+              <span class="burst-star burst-star-a"></span>
+              <span class="burst-star burst-star-b"></span>
+              <span class="burst-star burst-star-c"></span>
+              <span class="burst-star burst-star-d"></span>
+              <span class="burst-star burst-star-e"></span>
+              <span class="burst-star burst-star-f"></span>
+            </div>
+            <div id="celebration-text" class="celebration-text"></div>
+          </div>
+          <div id="flying-bonus" class="flying-bonus" aria-hidden="true"></div>
+        </div>
+      </section>
+      <div id="game-over-modal" class="game-over-modal" role="dialog" aria-modal="true" aria-labelledby="game-over-title" aria-hidden="true">
+        <div class="game-over-card">
+          <h2 id="game-over-title"></h2>
+          <p id="game-over-message"></p>
+          <div class="game-over-actions">
+            <button id="game-over-play-again" class="hud-button" type="button">Play Again</button>
+            <button id="game-over-menu-btn" class="hud-button hud-button-secondary" type="button">Menu</button>
+          </div>
+        </div>
       </div>
-    </section>
-  </main>
+    </main>
+  </div>
 
   <script src="script.js"></script>
 </body>
