@@ -27,7 +27,7 @@ body {
 
 .app-shell {
   position: relative;
-  width: min(92vw, 760px);
+  width: min(96vw, 1080px);
 }
 
 .app {
@@ -338,6 +338,73 @@ button {
   padding: 22px;
 }
 
+.game-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 270px;
+  gap: 20px;
+  align-items: start;
+}
+
+.leaderboard-panel {
+  padding: 22px 20px;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+}
+
+.leaderboard-panel h2 {
+  margin-bottom: 16px;
+  font-size: clamp(1.45rem, 3vw, 1.9rem);
+}
+
+.leaderboard-list {
+  display: grid;
+  gap: 12px;
+}
+
+.leaderboard-entry,
+.leaderboard-empty {
+  padding: 14px 14px 12px;
+  border-radius: 18px;
+  background: rgba(30, 41, 59, 0.62);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.leaderboard-entry {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.leaderboard-rank {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.18), rgba(249, 115, 22, 0.18));
+  color: #fbbf24;
+  font-weight: 800;
+}
+
+.leaderboard-name {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.leaderboard-score {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.leaderboard-empty {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
 .instructions,
 .status {
   text-align: center;
@@ -580,9 +647,14 @@ button {
 .tile {
   position: relative;
   width: 100%;
+  min-width: 0;
+  min-height: 0;
   aspect-ratio: 1;
+  padding: 0;
   border: 0;
   border-radius: 18px;
+  appearance: none;
+  -webkit-appearance: none;
   box-shadow: inset 0 -8px 16px rgba(15, 23, 42, 0.2);
   transition: transform 120ms ease, opacity 120ms ease;
 }
@@ -1135,6 +1207,62 @@ button {
   font-size: 0.98rem;
 }
 
+.score-save-panel {
+  margin: 0 0 24px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: rgba(15, 23, 42, 0.42);
+  text-align: left;
+}
+
+.score-save-panel.hidden {
+  display: none;
+}
+
+.score-save-label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.score-save-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.score-save-input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  background: rgba(15, 23, 42, 0.72);
+  color: var(--text);
+  font: inherit;
+}
+
+.score-save-input::placeholder {
+  color: #64748b;
+}
+
+.score-save-input:focus-visible {
+  outline: 2px solid rgba(251, 191, 36, 0.8);
+  outline-offset: 2px;
+}
+
+.score-save-note {
+  min-height: 20px;
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 .modal-best {
   display: inline-block;
   margin-top: 8px;
@@ -1159,7 +1287,7 @@ button {
 
 @media (max-width: 600px) {
   .app-shell {
-    width: min(94vw, 760px);
+    width: min(94vw, 1080px);
   }
 
   .menu-card {
@@ -1191,14 +1319,29 @@ button {
     flex: 1 1 140px;
   }
 
+  .game-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .leaderboard-panel {
+    order: 2;
+  }
+
   .menu-actions,
   .hud-actions {
     width: 100%;
     flex-direction: column;
   }
 
-  button {
+  .menu-button,
+  .hud-button,
+  .game-over-actions button,
+  .score-save-controls button {
     width: 100%;
+  }
+
+  .score-save-controls {
+    grid-template-columns: 1fr;
   }
 
   .celebration-text span {

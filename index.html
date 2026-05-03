@@ -148,33 +148,49 @@
         </div>
       </section>
 
-      <section class="game-panel">
-        <div class="instructions">
-          Slide a tile by swiping it one space. Clean all cracked cells before the move limit runs out, and earn bonus moves for big clears.
-        </div>
-        <div id="status" class="status">Press Play to start.</div>
-        <div class="board-wrap">
-          <div id="board" class="board" aria-label="Match 3 board"></div>
-          <div id="celebration" class="celebration" aria-live="polite">
-            <div class="celebration-burst">
-              <span class="burst-ring burst-ring-a"></span>
-              <span class="burst-ring burst-ring-b"></span>
-              <span class="burst-star burst-star-a"></span>
-              <span class="burst-star burst-star-b"></span>
-              <span class="burst-star burst-star-c"></span>
-              <span class="burst-star burst-star-d"></span>
-              <span class="burst-star burst-star-e"></span>
-              <span class="burst-star burst-star-f"></span>
-            </div>
-            <div id="celebration-text" class="celebration-text"></div>
+      <div class="game-layout">
+        <section class="game-panel">
+          <div class="instructions">
+            Slide a tile by swiping it one space. Clean all cracked cells before the move limit runs out, and earn bonus moves for big clears.
           </div>
-          <div id="flying-bonus" class="flying-bonus" aria-hidden="true"></div>
-        </div>
-      </section>
+          <div id="status" class="status">Press Play to start.</div>
+          <div class="board-wrap">
+            <div id="board" class="board" aria-label="Match 3 board"></div>
+            <div id="celebration" class="celebration" aria-live="polite">
+              <div class="celebration-burst">
+                <span class="burst-ring burst-ring-a"></span>
+                <span class="burst-ring burst-ring-b"></span>
+                <span class="burst-star burst-star-a"></span>
+                <span class="burst-star burst-star-b"></span>
+                <span class="burst-star burst-star-c"></span>
+                <span class="burst-star burst-star-d"></span>
+                <span class="burst-star burst-star-e"></span>
+                <span class="burst-star burst-star-f"></span>
+              </div>
+              <div id="celebration-text" class="celebration-text"></div>
+            </div>
+            <div id="flying-bonus" class="flying-bonus" aria-hidden="true"></div>
+          </div>
+        </section>
+
+        <aside class="leaderboard-panel" aria-labelledby="leaderboard-title">
+          <p class="label">Leaderboard</p>
+          <h2 id="leaderboard-title">Top 3 Scores</h2>
+          <div id="leaderboard-list" class="leaderboard-list"></div>
+        </aside>
+      </div>
       <div id="game-over-modal" class="game-over-modal" role="dialog" aria-modal="true" aria-labelledby="game-over-title" aria-hidden="true">
         <div class="game-over-card">
           <h2 id="game-over-title"></h2>
           <p id="game-over-message"></p>
+          <div id="score-save-panel" class="score-save-panel">
+            <label class="score-save-label" for="player-name-input">Save your score</label>
+            <div class="score-save-controls">
+              <input id="player-name-input" class="score-save-input" type="text" maxlength="18" placeholder="Enter your name">
+              <button id="save-score-button" class="hud-button" type="button">Save Score</button>
+            </div>
+            <p id="score-save-note" class="score-save-note"></p>
+          </div>
           <div class="game-over-actions">
             <button id="game-over-play-again" class="hud-button" type="button">Play Again</button>
             <button id="game-over-menu-btn" class="hud-button hud-button-secondary" type="button">Menu</button>

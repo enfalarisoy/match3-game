@@ -42,6 +42,11 @@ const muteButton = document.getElementById("mute-button");
 const gameOverModal = document.getElementById("game-over-modal");
 const gameOverTitle = document.getElementById("game-over-title");
 const gameOverMessage = document.getElementById("game-over-message");
+const scoreSavePanel = document.getElementById("score-save-panel");
+const playerNameInput = document.getElementById("player-name-input");
+const saveScoreButton = document.getElementById("save-score-button");
+const scoreSaveNote = document.getElementById("score-save-note");
+const leaderboardListElement = document.getElementById("leaderboard-list");
 const gameOverPlayAgain = document.getElementById("game-over-play-again");
 const gameOverMenuBtn = document.getElementById("game-over-menu-btn");
 
@@ -55,17 +60,21 @@ let gameFinished = false;
 let pointerStart = null;
 let celebrationTimeout = null;
 let flyingBonusTimeout = null;
+let flyingBonusResolve = null;
 let activeSwapCleanup = null;
 let previewState = null;
 let hintIndices = [];
 let hintTimeout = null;
 let highScore = parseInt(localStorage.getItem("match3HighScore") || "0", 10);
 let boardImpactTimeout = null;
+let leaderboardEntries = loadLeaderboard();
+let scoreSavedThisGame = false;
 
 // ─── Audio (Web Audio API — no external files) ────────────────────────────────
 let audioCtx = null;
 let soundMuted = false;
 let audioResumePromise = null;
+let audioPrimed = false;
 
 function getAudioCtx() {
   if (!audioCtx) {
@@ -95,10 +104,49 @@ async function ensureAudioReady() {
   }
 
   await audioResumePromise;
+  if (ctx.state === "running" && !audioPrimed) {
+    primeAudioContext(ctx);
+  }
   return ctx.state === "running" ? ctx : null;
 }
 
+function primeAudioContext(ctx) {
+  if (!ctx || audioPrimed) {
+    return;
+  }
+
+  try {
+    const buffer = ctx.createBuffer(1, 1, 22050);
+    const source = ctx.createBufferSource();
+    const gain = ctx.createGain();
+    source.buffer = buffer;
+    gain.gain.value = 0.00001;
+    source.connect(gain);
+    gain.connect(ctx.destination);
+    source.start(0);
+    source.stop(ctx.currentTime + 0.001);
+    audioPrimed = true;
+  } catch (_) {
+    // Ignore iOS/Safari warmup failures and fall back to later gestures.
+  }
+}
+
 function unlockAudioFromGesture() {
+  const ctx = getAudioCtx();
+  if (!ctx) {
+    return;
+  }
+
+  if (ctx.state === "running") {
+    primeAudioContext(ctx);
+  } else {
+    void ctx.resume().then(() => {
+      if (ctx.state === "running") {
+        primeAudioContext(ctx);
+      }
+    }).catch(() => null);
+  }
+
   void ensureAudioReady();
 }
 
@@ -254,6 +302,7 @@ function returnToMenu() {
   cleanupActiveSwap();
   hideGameOverModal();
   clearBoardImpact();
+  dismissTransientFeedback();
   mainMenuElement.classList.remove("hidden");
   appElement.classList.remove("active");
   appElement.setAttribute("aria-hidden", "true");
@@ -973,14 +1022,117 @@ function updateHighScore() {
   }
 }
 
+function loadLeaderboard() {
+  try {
+    const saved = JSON.parse(localStorage.getItem("match3Leaderboard") || "[]");
+    if (!Array.isArray(saved)) {
+      return [];
+    }
+
+    return saved
+      .filter((entry) => typeof entry?.name === "string" && Number.isFinite(entry?.score))
+      .map((entry) => ({
+        name: entry.name.trim().slice(0, 18) || "Player",
+        score: Math.max(0, Math.round(entry.score)),
+        at: Number.isFinite(entry.at) ? entry.at : Date.now()
+      }))
+      .sort((a, b) => (b.score - a.score) || (a.at - b.at))
+      .slice(0, 3);
+  } catch (_) {
+    return [];
+  }
+}
+
+function persistLeaderboard() {
+  localStorage.setItem("match3Leaderboard", JSON.stringify(leaderboardEntries));
+}
+
+function renderLeaderboard() {
+  if (!leaderboardListElement) {
+    return;
+  }
+
+  leaderboardListElement.innerHTML = "";
+
+  if (leaderboardEntries.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "leaderboard-empty";
+    empty.textContent = "No saved scores yet. Finish a run and save your score to claim a top spot.";
+    leaderboardListElement.appendChild(empty);
+    return;
+  }
+
+  leaderboardEntries.slice(0, 3).forEach((entry, index) => {
+    const row = document.createElement("div");
+    row.className = "leaderboard-entry";
+    row.innerHTML = `
+      <div class="leaderboard-rank">${index + 1}</div>
+      <div class="leaderboard-name">${entry.name}</div>
+      <div class="leaderboard-score">${entry.score}</div>
+    `;
+    leaderboardListElement.appendChild(row);
+  });
+}
+
+function sanitizePlayerName(name) {
+  return name.trim().replace(/\s+/g, " ").slice(0, 18);
+}
+
+function resetScoreSavePanel() {
+  scoreSavedThisGame = false;
+  scoreSavePanel.classList.toggle("hidden", score <= 0);
+  saveScoreButton.disabled = score <= 0;
+  playerNameInput.disabled = score <= 0;
+  playerNameInput.value = localStorage.getItem("match3PlayerName") || "";
+  scoreSaveNote.textContent = score <= 0 ? "" : "Enter your name to save this run to the leaderboard.";
+}
+
+function saveCurrentScore() {
+  if (scoreSavedThisGame || score <= 0) {
+    return;
+  }
+
+  const name = sanitizePlayerName(playerNameInput.value);
+  if (!name) {
+    scoreSaveNote.textContent = "Please enter a name before saving.";
+    playerNameInput.focus();
+    return;
+  }
+
+  localStorage.setItem("match3PlayerName", name);
+  leaderboardEntries.push({
+    name,
+    score,
+    at: Date.now()
+  });
+  leaderboardEntries = leaderboardEntries
+    .sort((a, b) => (b.score - a.score) || (a.at - b.at))
+    .slice(0, 3);
+  persistLeaderboard();
+  renderLeaderboard();
+  scoreSavedThisGame = true;
+  scoreSaveNote.textContent = `Saved ${name}'s score of ${score} to the leaderboard.`;
+  saveScoreButton.disabled = true;
+  playerNameInput.disabled = true;
+}
+
 function setStatus(message) {
   statusElement.textContent = message;
 }
 
 // ─── Celebration ──────────────────────────────────────────────────────────────
+function hideCelebration() {
+  if (celebrationTimeout) {
+    window.clearTimeout(celebrationTimeout);
+    celebrationTimeout = null;
+  }
+
+  celebrationElement.classList.remove("visible", "strong");
+}
+
 function showCelebration(totalCleared, bonusMoves) {
   if (totalCleared <= 3) return;
-  if (celebrationTimeout) window.clearTimeout(celebrationTimeout);
+  hideCelebration();
   const tileWord = totalCleared === 1 ? "TILE" : "TILES";
   const moveWord = bonusMoves === 1 ? "MOVE" : "MOVES";
   const bonusText = bonusMoves > 0 ? `<br>YOU EARNED +${bonusMoves} ${moveWord}` : "";
@@ -988,7 +1140,7 @@ function showCelebration(totalCleared, bonusMoves) {
   celebrationElement.classList.add("visible");
   celebrationElement.classList.toggle("strong", totalCleared > 4);
   celebrationTimeout = window.setTimeout(() => {
-    celebrationElement.classList.remove("visible", "strong");
+    hideCelebration();
   }, totalCleared > 4 ? 2100 : 1700);
 }
 
@@ -1007,11 +1159,41 @@ function animateFlyingBonus(bonusMoves) {
   void flyingBonusElement.offsetWidth;
   flyingBonusElement.classList.add("visible");
   return new Promise((resolve) => {
+    flyingBonusResolve = resolve;
     flyingBonusTimeout = window.setTimeout(() => {
       flyingBonusElement.classList.remove("visible");
+      flyingBonusTimeout = null;
+      flyingBonusResolve = null;
       resolve();
     }, 1550);
   });
+}
+
+function dismissTransientFeedback() {
+  const celebrationVisible = celebrationElement.classList.contains("visible");
+  const bonusVisible = flyingBonusElement.classList.contains("visible") || Boolean(flyingBonusResolve);
+
+  if (!celebrationVisible && !bonusVisible) {
+    return false;
+  }
+
+  hideCelebration();
+
+  if (flyingBonusTimeout) {
+    window.clearTimeout(flyingBonusTimeout);
+    flyingBonusTimeout = null;
+  }
+
+  if (bonusVisible) {
+    flyingBonusElement.classList.remove("visible");
+    if (flyingBonusResolve) {
+      const resolve = flyingBonusResolve;
+      flyingBonusResolve = null;
+      resolve();
+    }
+  }
+
+  return true;
 }
 
 function getBonusMoves(totalCleared) {
@@ -1028,10 +1210,17 @@ function showGameOverModal(title, message, isWin) {
     ? `<strong class="new-best">New best score: ${score}!</strong>`
     : `Best score: ${highScore}`;
   gameOverMessage.innerHTML = `${message}<br><span class="modal-best">${bestLine}</span>`;
+  resetScoreSavePanel();
   gameOverModal.setAttribute("aria-hidden", "false");
   gameOverModal.classList.add("visible");
   gameOverModal.classList.toggle("modal-win", !!isWin);
   gameOverModal.classList.toggle("modal-lose", !isWin);
+  if (!scoreSavePanel.classList.contains("hidden")) {
+    window.setTimeout(() => {
+      playerNameInput.focus();
+      playerNameInput.select();
+    }, 40);
+  }
 }
 
 function hideGameOverModal() {
@@ -1347,10 +1536,12 @@ function startGame() {
   movesLeft = startingMoves;
   locked = false;
   gameFinished = false;
+  scoreSavedThisGame = false;
   pointerStart = null;
-  if (celebrationTimeout) window.clearTimeout(celebrationTimeout);
+  hideCelebration();
   if (flyingBonusTimeout) window.clearTimeout(flyingBonusTimeout);
-  celebrationElement.classList.remove("visible", "strong");
+  flyingBonusTimeout = null;
+  flyingBonusResolve = null;
   celebrationTextElement.textContent = "";
   flyingBonusElement.classList.remove("visible");
   flyingBonusElement.textContent = "";
@@ -1358,6 +1549,10 @@ function startGame() {
   placeObstacles();
   ensurePlayableBoard();
   renderBoard();
+  scoreSavePanel.classList.add("hidden");
+  scoreSaveNote.textContent = "";
+  saveScoreButton.disabled = false;
+  playerNameInput.disabled = false;
   updateHud();
   setStatus("Clear all cracked cells before you run out of moves.");
 }
@@ -1373,9 +1568,16 @@ function toggleMute() {
   }
 }
 
+function handleFastFeedbackDismiss() {
+  dismissTransientFeedback();
+}
+
 // ─── Event listeners ──────────────────────────────────────────────────────────
 window.addEventListener("pointerdown", unlockAudioFromGesture, { passive: true });
+window.addEventListener("touchstart", unlockAudioFromGesture, { passive: true });
+window.addEventListener("click", unlockAudioFromGesture, { passive: true });
 window.addEventListener("keydown", unlockAudioFromGesture, { passive: true });
+appElement.addEventListener("pointerdown", handleFastFeedbackDismiss, true);
 restartButton.addEventListener("click", startGame);
 menuButton.addEventListener("click", returnToMenu);
 startButton.addEventListener("click", openGameFromMenu);
@@ -1385,8 +1587,17 @@ openCreditsButton.addEventListener("click", () => showMenuView("menu-credits"));
 creditsBackButton.addEventListener("click", () => showMenuView("menu-home"));
 hintButton.addEventListener("click", showHint);
 muteButton.addEventListener("click", toggleMute);
+saveScoreButton.addEventListener("click", saveCurrentScore);
+playerNameInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    saveCurrentScore();
+  }
+});
 gameOverPlayAgain.addEventListener("click", startGame);
 gameOverMenuBtn.addEventListener("click", returnToMenu);
 
+renderLeaderboard();
+scoreSavePanel.classList.add("hidden");
 showMenuView("menu-home");
 setStatus("Press Start Game to begin.");
