@@ -67,6 +67,7 @@ let hintIndices = [];
 let hintTimeout = null;
 let highScore = parseInt(localStorage.getItem("match3HighScore") || "0", 10);
 let boardImpactTimeout = null;
+let hasStartedGame = false;
 let leaderboardEntries = loadLeaderboard();
 let scoreSavedThisGame = false;
 
@@ -290,11 +291,18 @@ function showMenuView(viewId) {
   });
 }
 
+function updateMenuPrimaryButton() {
+  startButton.textContent = hasStartedGame ? "Resume" : "Start Game";
+}
+
 function openGameFromMenu() {
   showMenuView("menu-home");
   mainMenuElement.classList.add("hidden");
   appElement.classList.add("active");
   appElement.setAttribute("aria-hidden", "false");
+  if (hasStartedGame) {
+    return;
+  }
   startGame();
 }
 
@@ -306,8 +314,8 @@ function returnToMenu() {
   mainMenuElement.classList.remove("hidden");
   appElement.classList.remove("active");
   appElement.setAttribute("aria-hidden", "true");
+  updateMenuPrimaryButton();
   showMenuView("menu-home");
-  setStatus("Press Start Game to begin.");
 }
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
@@ -1065,11 +1073,20 @@ function renderLeaderboard() {
   leaderboardEntries.slice(0, 3).forEach((entry, index) => {
     const row = document.createElement("div");
     row.className = "leaderboard-entry";
-    row.innerHTML = `
-      <div class="leaderboard-rank">${index + 1}</div>
-      <div class="leaderboard-name">${entry.name}</div>
-      <div class="leaderboard-score">${entry.score}</div>
-    `;
+
+    const rank = document.createElement("div");
+    rank.className = "leaderboard-rank";
+    rank.textContent = String(index + 1);
+
+    const name = document.createElement("div");
+    name.className = "leaderboard-name";
+    name.textContent = entry.name;
+
+    const scoreValue = document.createElement("div");
+    scoreValue.className = "leaderboard-score";
+    scoreValue.textContent = String(entry.score);
+
+    row.append(rank, name, scoreValue);
     leaderboardListElement.appendChild(row);
   });
 }
@@ -1532,6 +1549,8 @@ function startGame() {
   clearHint();
   clearBoardImpact();
   unlockAudioFromGesture();
+  hasStartedGame = true;
+  updateMenuPrimaryButton();
   score = 0;
   movesLeft = startingMoves;
   locked = false;
@@ -1599,5 +1618,6 @@ gameOverMenuBtn.addEventListener("click", returnToMenu);
 
 renderLeaderboard();
 scoreSavePanel.classList.add("hidden");
+updateMenuPrimaryButton();
 showMenuView("menu-home");
 setStatus("Press Start Game to begin.");
